@@ -3,7 +3,7 @@ export default function TopBar() {
     <header className="flex h-14 items-center justify-between border-b px-6">
       <div>
         <h1 className="text-sm font-medium text-muted-foreground">
-          Nomad Village Growth Engine
+          Finding Nomad Villages
         </h1>
       </div>
       <div className="flex items-center gap-3">

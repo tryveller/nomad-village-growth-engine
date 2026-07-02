@@ -36,3 +36,5 @@ test-results/
 
 # Hermes
 .hermes/tsconfig.tsbuildinfo
+.vercel
+tsconfig.tsbuildinfo

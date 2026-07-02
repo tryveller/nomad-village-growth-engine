@@ -6,6 +6,7 @@ import Dashboard from "@/app/dashboard/Dashboard";
 import Leads from "@/app/leads/Leads";
 import Pipeline from "@/app/pipeline/Pipeline";
 import Outreach from "@/app/outreach/Outreach";
+import Villages from "@/app/villages/Villages";
 import Communications from "@/app/communications/Communications";
 import Organizations from "@/app/organizations/Organizations";
 import Settings from "@/app/settings/Settings";
@@ -25,6 +26,7 @@ export default function App() {
           <Route path="/leads" element={<Leads />} />
           <Route path="/pipeline" element={<Pipeline />} />
           <Route path="/outreach" element={<Outreach />} />
+          <Route path="/villages" element={<Villages />} />
           <Route path="/communications" element={<Communications />} />
           <Route path="/organizations" element={<Organizations />} />
           <Route path="/settings" element={<Settings />} />

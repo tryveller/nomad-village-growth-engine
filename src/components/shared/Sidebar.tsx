@@ -6,12 +6,14 @@ import {
   Send,
   MessageSquare,
   Building2,
+  MapPin,
   Settings,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/villages", label: "Villages", icon: MapPin },
   { to: "/leads", label: "Leads", icon: Users },
   { to: "/pipeline", label: "Pipeline", icon: Kanban },
   { to: "/outreach", label: "Outreach", icon: Send },
@@ -23,7 +25,7 @@ export default function Sidebar() {
   return (
     <aside className="flex w-56 flex-col border-r bg-card">
       <div className="flex h-14 items-center gap-2 border-b px-4">
-        <span className="text-lg font-semibold tracking-tight">🌍 NV Growth</span>
+        <span className="text-lg font-semibold tracking-tight">🌍 Finding Nomad Villages</span>
       </div>
       <nav className="flex-1 space-y-1 p-3">
         {navItems.map(({ to, label, icon: Icon }) => (
