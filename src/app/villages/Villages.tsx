@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { MapPin, Building2, FileText, Tag } from "lucide-react";
 import { useState } from "react";
+import VillageDetail from "./VillageDetail";
 
 interface Village {
   id: string;
@@ -23,6 +24,7 @@ const TAG_COLORS: Record<string, string> = {
 export default function Villages() {
   const [selectedState, setSelectedState] = useState<string>("all");
   const [selectedTag, setSelectedTag] = useState<string>("all");
+  const [selectedVillage, setSelectedVillage] = useState<Village | null>(null);
 
   const { data: villages, isLoading } = useQuery({
     queryKey: ["villages"],
@@ -75,56 +77,18 @@ export default function Villages() {
           <span className="flex items-center gap-1 text-sm text-muted-foreground mr-1">
             <Tag className="h-3.5 w-3.5" />
           </span>
-          <button
-            onClick={() => setSelectedTag("all")}
-            className={`rounded-full px-3 py-1 text-sm font-medium transition-colors ${
-              selectedTag === "all"
-                ? "bg-primary text-primary-foreground"
-                : "bg-muted text-muted-foreground hover:bg-accent"
-            }`}
-          >
-            All tags
-          </button>
+          <button onClick={() => setSelectedTag("all")} className={`rounded-full px-3 py-1 text-sm font-medium transition-colors ${selectedTag === "all" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-accent"}`}>All tags</button>
           {allTags.map((tag) => (
-            <button
-              key={tag}
-              onClick={() => setSelectedTag(tag)}
-              className={`rounded-full px-3 py-1 text-sm font-medium transition-colors ${
-                selectedTag === tag
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-muted text-muted-foreground hover:bg-accent"
-              }`}
-            >
-              {tag.replace(/_/g, " ")}
-            </button>
+            <button key={tag} onClick={() => setSelectedTag(tag)} className={`rounded-full px-3 py-1 text-sm font-medium transition-colors ${selectedTag === tag ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-accent"}`}>{tag.replace(/_/g, " ")}</button>
           ))}
         </div>
       )}
 
       {/* State filter pills */}
       <div className="flex flex-wrap gap-2">
-        <button
-          onClick={() => setSelectedState("all")}
-          className={`rounded-full px-3 py-1 text-sm font-medium transition-colors ${
-            selectedState === "all"
-              ? "bg-primary text-primary-foreground"
-              : "bg-muted text-muted-foreground hover:bg-accent"
-          }`}
-        >
-          All ({villages?.length || 0})
-        </button>
+        <button onClick={() => setSelectedState("all")} className={`rounded-full px-3 py-1 text-sm font-medium transition-colors ${selectedState === "all" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-accent"}`}>All ({villages?.length || 0})</button>
         {states.map((state) => (
-          <button
-            key={state}
-            onClick={() => setSelectedState(state)}
-            className={`rounded-full px-3 py-1 text-sm font-medium transition-colors ${
-              selectedState === state
-                ? "bg-primary text-primary-foreground"
-                : "bg-muted text-muted-foreground hover:bg-accent"
-            }`}
-          >
-            {state} ({stateCounts?.[state] || 0})
-          </button>
+          <button key={state} onClick={() => setSelectedState(state)} className={`rounded-full px-3 py-1 text-sm font-medium transition-colors ${selectedState === state ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-accent"}`}>{state} ({stateCounts?.[state] || 0})</button>
         ))}
       </div>
 
@@ -144,10 +108,13 @@ export default function Villages() {
           {filtered?.map((village) => (
             <div
               key={village.id}
-              className="group rounded-lg border bg-card p-5 transition-shadow hover:shadow-md"
+              onClick={() => setSelectedVillage(village)}
+              className="group cursor-pointer rounded-lg border bg-card p-5 transition-all hover:border-primary/50 hover:shadow-md"
             >
               <div className="flex items-start justify-between gap-2">
-                <h3 className="font-semibold text-lg">{village.name}</h3>
+                <h3 className="font-semibold text-lg group-hover:text-primary transition-colors">
+                  {village.name}
+                </h3>
               </div>
               <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
                 <Building2 className="h-3.5 w-3.5" />
@@ -160,14 +127,7 @@ export default function Villages() {
               {village.tags && village.tags.length > 0 && (
                 <div className="mt-2 flex flex-wrap gap-1">
                   {village.tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                        TAG_COLORS[tag] || "bg-gray-100 text-gray-700"
-                      }`}
-                    >
-                      {tag.replace(/_/g, " ")}
-                    </span>
+                    <span key={tag} className={`rounded-full px-2 py-0.5 text-xs font-medium ${TAG_COLORS[tag] || "bg-gray-100 text-gray-700"}`}>{tag.replace(/_/g, " ")}</span>
                   ))}
                 </div>
               )}
@@ -186,6 +146,11 @@ export default function Villages() {
         <div className="rounded-lg border bg-card p-8 text-center">
           <p className="text-muted-foreground">No villages found for this filter.</p>
         </div>
+      )}
+
+      {/* Village Detail Modal */}
+      {selectedVillage && (
+        <VillageDetail village={selectedVillage} onClose={() => setSelectedVillage(null)} />
       )}
     </div>
   );
