@@ -1,6 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2, X, MapPin, Building2, Home, Phone, Mail, Globe } from "lucide-react";
+import { Loader2, X, MapPin, Building2, Home, Phone, Mail, Globe, NotePen, Clock } from "lucide-react";
 
 interface VillageDetailProps {
   village: {
@@ -9,6 +9,7 @@ interface VillageDetailProps {
     state: string;
     district: string;
     profile: string | null;
+    notes: string | null;
   };
   onClose: () => void;
 }
@@ -46,6 +47,21 @@ export default function VillageDetail({ village, onClose }: VillageDetailProps) 
         .eq("district", village.district)
         .maybeSingle();
       return data as DistrictContact | null;
+    },
+  });
+
+  // Fetch change log for this village
+  const { data: changeLog = [], isLoading: clLoading } = useQuery({
+    queryKey: ["village_changelog", village.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("village_changelog")
+        .select("*")
+        .eq("village_id", village.id)
+        .order("changed_at", { ascending: false });
+      
+      if (error) throw error;
+      return data;
     },
   });
 
@@ -171,6 +187,56 @@ export default function VillageDetail({ village, onClose }: VillageDetailProps) 
             ) : (
               <p className="mt-3 text-sm text-muted-foreground italic">
                 District contact info coming soon.
+              </p>
+            )}
+          </div>
+
+          {/* Notes Section */}
+          {village.notes && (
+            <div>
+              <h3 className="flex items-center gap-2 text-lg font-semibold">
+                <NotePen className="h-5 w-5 text-blue-600" />
+                Notes
+              </h3>
+              <div className="mt-3 space-y-2">
+                <p className="whitespace-pre-line">{village.notes}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Change Log Section */}
+          <div>
+            <h3 className="flex items-center gap-2 text-lg font-semibold">
+              <Clock className="h-5 w-5 text-blue-600" />
+              Change Log
+            </h3>
+            {clLoading ? (
+              <div className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin" /> Loading...
+              </div>
+            ) : changeLog.length > 0 ? (
+              <div className="mt-3 space-y-2">
+                {changeLog.map((change, index) => (
+                  <div key={index} className="border-b pb-2 last:border-b-0">
+                    <div className="flex items-start gap-2">
+                      <Clock className="h-3 w-3 flex-shrink-0" />
+                      <div className="flex-1">
+                        <p className="font-medium text-sm">Changed {change.field_changed}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {change.old_value === null ? '(empty)' : change.old_value} &rarr; 
+                          {change.new_value === null ? '(empty)' : change.new_value}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(change.changed_at).toLocaleString()} by {change.changed_by}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="mt-3 text-sm text-muted-foreground italic">
+                No change history available.
               </p>
             )}
           </div>
