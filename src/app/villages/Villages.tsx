@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
-import { MapPin, Building2, FileText } from "lucide-react";
+import { MapPin, Building2, FileText, Tag } from "lucide-react";
 import { useState } from "react";
 
 interface Village {
@@ -9,10 +9,20 @@ interface Village {
   district: string;
   name: string;
   profile: string | null;
+  tags: string[] | null;
 }
+
+const TAG_COLORS: Record<string, string> = {
+  homestay_cluster: "bg-emerald-100 text-emerald-800",
+  eco_tourism: "bg-green-100 text-green-800",
+  heritage: "bg-amber-100 text-amber-800",
+  tribal: "bg-purple-100 text-purple-800",
+  coastal: "bg-blue-100 text-blue-800",
+};
 
 export default function Villages() {
   const [selectedState, setSelectedState] = useState<string>("all");
+  const [selectedTag, setSelectedTag] = useState<string>("all");
 
   const { data: villages, isLoading } = useQuery({
     queryKey: ["villages"],
@@ -32,10 +42,15 @@ export default function Villages() {
     ? [...new Set(villages.map((v) => v.state))].sort()
     : [];
 
-  const filtered =
-    selectedState === "all"
-      ? villages
-      : villages?.filter((v) => v.state === selectedState);
+  const allTags = villages
+    ? [...new Set(villages.flatMap((v) => v.tags || []))].sort()
+    : [];
+
+  const filtered = villages?.filter((v) => {
+    const stateMatch = selectedState === "all" || v.state === selectedState;
+    const tagMatch = selectedTag === "all" || (v.tags || []).includes(selectedTag);
+    return stateMatch && tagMatch;
+  });
 
   const stateCounts = villages?.reduce(
     (acc, v) => {
@@ -53,6 +68,38 @@ export default function Villages() {
           {villages?.length || 0} villages discovered across {states.length} states/UTs
         </p>
       </div>
+
+      {/* Tag filter pills */}
+      {allTags.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          <span className="flex items-center gap-1 text-sm text-muted-foreground mr-1">
+            <Tag className="h-3.5 w-3.5" />
+          </span>
+          <button
+            onClick={() => setSelectedTag("all")}
+            className={`rounded-full px-3 py-1 text-sm font-medium transition-colors ${
+              selectedTag === "all"
+                ? "bg-primary text-primary-foreground"
+                : "bg-muted text-muted-foreground hover:bg-accent"
+            }`}
+          >
+            All tags
+          </button>
+          {allTags.map((tag) => (
+            <button
+              key={tag}
+              onClick={() => setSelectedTag(tag)}
+              className={`rounded-full px-3 py-1 text-sm font-medium transition-colors ${
+                selectedTag === tag
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted text-muted-foreground hover:bg-accent"
+              }`}
+            >
+              {tag.replace(/_/g, " ")}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* State filter pills */}
       <div className="flex flex-wrap gap-2">
@@ -99,17 +146,33 @@ export default function Villages() {
               key={village.id}
               className="group rounded-lg border bg-card p-5 transition-shadow hover:shadow-md"
             >
-              <h3 className="font-semibold text-lg">{village.name}</h3>
-              <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
+              <div className="flex items-start justify-between gap-2">
+                <h3 className="font-semibold text-lg">{village.name}</h3>
+              </div>
+              <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
                 <Building2 className="h-3.5 w-3.5" />
                 <span>{village.district}</span>
               </div>
-              <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
+              <div className="mt-0.5 flex items-center gap-2 text-sm text-muted-foreground">
                 <MapPin className="h-3.5 w-3.5" />
                 <span>{village.state}</span>
               </div>
+              {village.tags && village.tags.length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-1">
+                  {village.tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                        TAG_COLORS[tag] || "bg-gray-100 text-gray-700"
+                      }`}
+                    >
+                      {tag.replace(/_/g, " ")}
+                    </span>
+                  ))}
+                </div>
+              )}
               {village.profile && (
-                <div className="mt-3 flex items-start gap-2 text-sm text-muted-foreground">
+                <div className="mt-2 flex items-start gap-2 text-sm text-muted-foreground">
                   <FileText className="mt-0.5 h-3.5 w-3.5 shrink-0" />
                   <p className="line-clamp-3">{village.profile}</p>
                 </div>
@@ -121,7 +184,7 @@ export default function Villages() {
 
       {filtered?.length === 0 && !isLoading && (
         <div className="rounded-lg border bg-card p-8 text-center">
-          <p className="text-muted-foreground">No villages found for this state.</p>
+          <p className="text-muted-foreground">No villages found for this filter.</p>
         </div>
       )}
     </div>
