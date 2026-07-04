@@ -1,6 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2, X, MapPin, Building2, Home, Phone, Mail, Globe, NotePen, Clock } from "lucide-react";
+import { Loader2, X, MapPin, Building2, Home, Phone, Mail, Globe, NotebookPen, Clock } from "lucide-react";
 
 interface VillageDetailProps {
   village: {
@@ -195,7 +195,7 @@ export default function VillageDetail({ village, onClose }: VillageDetailProps) 
           {village.notes && (
             <div>
               <h3 className="flex items-center gap-2 text-lg font-semibold">
-                <NotePen className="h-5 w-5 text-blue-600" />
+                <NotebookPen className="h-5 w-5 text-blue-600" />
                 Notes
               </h3>
               <div className="mt-3 space-y-2">
@@ -227,7 +227,7 @@ export default function VillageDetail({ village, onClose }: VillageDetailProps) 
                           {change.new_value === null ? '(empty)' : change.new_value}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          {new Date(change.changed_at).toLocaleString()} by {change.changed_by}
+                          {change.changed_at ? new Date(change.changed_at).toLocaleString() : "—"} by {change.changed_by}
                         </p>
                       </div>
                     </div>

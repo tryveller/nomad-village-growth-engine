@@ -1,11 +1,10 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { 
-  MapPin, Building2, FileText, Tag, Table, Trash2, Edit3, 
-  Search, Trash, Edit, Loader2, X, Home, Phone, Mail, Globe
+  MapPin, Building2, FileText, Tag, 
+  Search, Trash, Edit, X, NotebookPen, Clock
 } from "lucide-react";
 import { useState, useEffect } from "react";
-import { QueryClient } from "@tanstack/react-query";
 
 interface Village {
   id: string;
@@ -90,7 +89,7 @@ export default function Villages() {
     direction: 'asc'
   });
 
-  const { data: villages = [], isLoading, error } = useQuery({
+  const { data: villages = [], isLoading } = useQuery({
     queryKey: ["villages"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -129,10 +128,10 @@ export default function Villages() {
           console.error("Search error:", error);
           setSearchResults([]);
         } else {
-          setSearchResults(data as Village[]);
+          setSearchResults((data ?? []) as Village[]);
         }
-      })
-      .finally(() => setSearchLoading(false));
+        setSearchLoading(false);
+      });
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -155,10 +154,12 @@ export default function Villages() {
 
   // Sort villages
   const sortedVillages = [...filteredVillages].sort((a, b) => {
+    const aVal = a[sortConfig.key] ?? '';
+    const bVal = b[sortConfig.key] ?? '';
     if (sortConfig.direction === 'asc') {
-      return a[sortConfig.key] > b[sortConfig.key] ? 1 : -1;
+      return aVal > bVal ? 1 : -1;
     } else {
-      return a[sortConfig.key] < b[sortConfig.key] ? 1 : -1;
+      return aVal < bVal ? 1 : -1;
     }
   });
 
@@ -242,9 +243,9 @@ export default function Villages() {
 
       {/* State filter pills */}
             <div className="flex flex-wrap gap-2">
-              <button onClick={() => setSelectedState("all")} className={`rounded-full px-3 py-1 text-sm font-medium transition-colors ${selectedState === "all" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-accent`}>All ({villages.length || 0})</button>
+              <button onClick={() => setSelectedState("all")} className={`rounded-full px-3 py-1 text-sm font-medium transition-colors ${selectedState === "all" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-accent"}`}>All ({villages.length || 0})</button>
               {states.map((state) => (
-                <button key={state} onClick={() => setSelectedState(state)} className={`rounded-full px-3 py-1 text-sm font-medium transition-colors ${selectedState === state ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-accent`}>${state} ({stateCounts[state] || 0})</button>
+                <button key={state} onClick={() => setSelectedState(state)} className={`rounded-full px-3 py-1 text-sm font-medium transition-colors ${selectedState === state ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-accent"}`}>{state} ({stateCounts[state] || 0})</button>
               ))}
             </div>
 
@@ -252,15 +253,15 @@ export default function Villages() {
       {viewMode === 'grid' ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {isLoading ? (
-            {[...Array(6)].map((_, i) => (
+            [...Array(6)].map((_, i) => (
               <div key={i} className="animate-pulse rounded-lg border bg-card p-5">
                 <div className="h-4 w-3/4 rounded bg-muted" />
                 <div className="mt-3 h-3 w-1/2 rounded bg-muted" />
                 <div className="mt-2 h-3 w-full rounded bg-muted" />
               </div>
-            ))}
+            ))
           ) : (
-            {displayedVillages.map((village) => (
+            displayedVillages.map((village) => (
               <div
                 key={village.id}
                 onClick={() => setSelectedVillage(village)}
@@ -329,7 +330,7 @@ export default function Villages() {
                 )}
                 {village.notes && (
                   <div className="mt-2 flex items-start gap-2 text-sm text-muted-foreground">
-                    <NotePen className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                    <NotebookPen className="mt-0.5 h-3.5 w-3.5 shrink-0" />
                     <p className="line-clamp-2">{village.notes}</p>
                   </div>
                 )}
@@ -338,12 +339,12 @@ export default function Villages() {
                   <span>{new Date(village.updated_at).toLocaleDateString()}</span>
                 </div>
               </div>
-            ))}
+            ))
           )}
         </div>
       ) : (
-        {/* Table View */}
         <div className="overflow-x-auto">
+          {/* Table View */}
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
@@ -391,13 +392,13 @@ export default function Villages() {
             <tbody className="divide-y divide-gray-200">
               {isLoading ? (
                 <tr>
-                  <td colSpan="8" className="py-8 text-center">
+                  <td colSpan={8} className="py-8 text-center">
                     <div className="animate-pulse h-4 w-3/4 mx-auto rounded bg-muted" />
                   </td>
                 </tr>
               ) : displayedVillages.length === 0 ? (
                 <tr>
-                  <td colSpan="8" className="py-8 text-center text-muted-foreground">
+                  <td colSpan={8} className="py-8 text-center text-muted-foreground">
                     No villages found for this filter.
                   </td>
                 </tr>
@@ -538,7 +539,7 @@ function VillageDetailWithEdit({ village, onClose }: VillageDetailWithEditProps)
         field: 'multiple',
         oldValue: 'previous values',
         newValue: 'current values',
-        timestamp: data.updated_at,
+        timestamp: data.updated_at || new Date().toISOString(),
         user: 'system'
       }]);
     } catch (err) {
@@ -583,7 +584,7 @@ function VillageDetailWithEdit({ village, onClose }: VillageDetailWithEditProps)
       }
       
       // Update the village
-      const { data, error: updateError } = await supabase
+      const { error: updateError } = await supabase
         .from('villages')
         .update({ ...updates, updated_at: new Date().toISOString() })
         .eq('id', village.id);

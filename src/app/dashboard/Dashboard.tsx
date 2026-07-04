@@ -1,26 +1,6 @@
-import { BarChart3, Users, Send, MessageSquare, MapPin, PieChart, List, Clock, TrendingUp } from "lucide-react";
+import { Users, MessageSquare, MapPin, PieChart } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
-
-interface Village {
-  id: string;
-  state: string;
-  district: string;
-  name: string;
-  profile: string | null;
-  tags: string[] | null;
-  notes: string | null;
-  updated_at: string;
-  created_at: string;
-}
-
-interface VillageStats {
-  totalVillages: number;
-  villagesByState: Array<{ state: string; count: number }>;
-  villagesByTag: Array<{ tag: string; count: number }>;
-  villagesWithData: number; // villages with profile, tags, or notes
-  recentVillages: Village[];
-}
 
 export default function Dashboard() {
   const { data: stats = null, isLoading, error } = useQuery({
@@ -138,6 +118,10 @@ export default function Dashboard() {
     );
   }
 
+  if (!stats) {
+    return null;
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -205,7 +189,7 @@ export default function Dashboard() {
             <h3 className="text-lg font-semibold">Villages by State</h3>
           </div>
           {stats.villagesByState.map((item, index) => (
-            <div key={index} className="flex items-center justify-between py-2 border-t first:border-t-0">
+            <div key={index} className="flex items-center justify-between py-2 border-t first:border-t first:border-t-0">
               <div className="flex items-center gap-3">
                 <div
                   className={`w-3 h-3 rounded-full ${
@@ -229,7 +213,7 @@ export default function Dashboard() {
             <h3 className="text-lg font-semibold">Villages by Category</h3>
           </div>
           {stats.villagesByTag.map((item, index) => (
-            <div key={index} className="flex items-center justify-between py-2 border-t first:border-t-0">
+            <div key={index} className="flex items-center justify-between py-2 first:border-t-0">
               <div className="flex items-center gap-3">
                 <div
                   className={`w-3 h-3 rounded-full ${
@@ -266,7 +250,7 @@ export default function Dashboard() {
                   <div className="flex justify-between">
                     <h4 className="font-medium">{village.name}</h4>
                     <span className="text-xs text-muted-foreground">
-                      {new Date(village.created_at).toLocaleDateString()}
+                      {village.created_at ? new Date(village.created_at).toLocaleDateString() : "—"}
                     </span>
                   </div>
                   <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
@@ -297,7 +281,7 @@ export default function Dashboard() {
         ) : (
           <p className="text-center text-muted-foreground py-4">No recent activity</p>
         )}
-      }
-    );
-}
+      </div>
+    </div>
+  );
 }
